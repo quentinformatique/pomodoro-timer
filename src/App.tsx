@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import {Home} from "./Views/Home/Home";
 

@@ -1,4 +1,4 @@
-import React, {FC} from "react";
+import {FC} from "react";
 import { Footer } from "../Components/Footer";
 
 export const Home:FC = () => {
