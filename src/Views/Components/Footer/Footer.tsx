@@ -8,7 +8,7 @@ export const Footer : FC = () => {
 
                 </div>
                 <div className="bg-light-gray  p-5">
-                    <p className="text-center">
+                    <p className="text-center text-xl">
                         @2025 Quentinformatique
                     </p>
                 </div>
