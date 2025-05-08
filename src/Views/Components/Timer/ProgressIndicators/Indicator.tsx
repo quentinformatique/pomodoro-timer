@@ -8,9 +8,9 @@ type Props = {
 export const Indicator : FC<Props> = ({state}) => {
 
     const colors = {
-        0: "bg-green-light w-6 h-6",
+        0: "bg-green-dark w-6 h-6",
         1: "bg-green-light w-11 h-6",
-        2: "bg-green-dark  w-6 h-6",
+        2: "bg-green-light  w-6 h-6",
     };
 
     return (<>

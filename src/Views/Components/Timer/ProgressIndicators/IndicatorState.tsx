@@ -1,5 +1,5 @@
 export enum IndicatorState {
-    Completed,
-    InProgress,
-    NotStarted,
+    NotStarted = 0,
+    InProgress = 1,
+    Completed = 2,
 }

@@ -2,7 +2,7 @@ import {FC} from "react";
 
 
 type Props = {
-    value: number
+    value: string
 }
 
 export const DigitalTimer : FC<Props> = ({value}) => {

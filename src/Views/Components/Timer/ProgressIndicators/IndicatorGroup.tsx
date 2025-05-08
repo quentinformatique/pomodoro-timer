@@ -3,9 +3,8 @@ import {Indicator} from "./Indicator.tsx";
 import {IndicatorState} from "./IndicatorState.tsx";
 
 type Props = {
-    indicators: IndicatorList;
+    indicators: IndicatorState[];
 }
-type IndicatorList = [IndicatorState, IndicatorState, IndicatorState, IndicatorState];
 
 export const IndicatorGroup : FC<Props> = ({indicators}) => {
     return (<>
