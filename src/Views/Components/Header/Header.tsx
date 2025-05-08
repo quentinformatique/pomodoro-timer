@@ -14,7 +14,7 @@ export const Header : FC = () => {
                         </p>
                     </div>
                 </div>
-                <div className="fixed top-9 right-4 sm:right-9 hover:cursor-pointer">
+                <div className="fixed top-9 right-4 sm:right-9 hover:cursor-not-allowed">
                     <Icon code="settings" fill={false} className="text-3xl! sm:text-4xl! md:text-5xl! lg:text-6xl!"/>
                 </div>
             </header>
