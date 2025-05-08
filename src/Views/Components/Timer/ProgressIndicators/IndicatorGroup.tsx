@@ -9,8 +9,8 @@ type Props = {
 export const IndicatorGroup : FC<Props> = ({indicators}) => {
     return (<>
         <div className="flex gap-2">
-            {indicators.map((indicator) => (
-                <Indicator state={indicator}/>
+            {indicators.map((indicator, i) => (
+                <Indicator key={i} state={indicator}/>
             ))}
         </div>
     </>)
