@@ -8,7 +8,7 @@ type props =  {
 
 export const BaseLayout:FC<props> = ({children}) => {
     return (
-        <div className="bg-gray text-green-light w-screen h-screen flex flex-col items-center overflow-hidden cursor-default">
+        <div className="bg-gray text-green-light w-screen h-screen flex flex-col space items-center overflow-hidden cursor-default">
             <Header/>
             {children}
             <Footer/>
