@@ -27,7 +27,6 @@ export const Timer: FC = () => {
 
     // Initialize audio elements
     useEffect(() => {
-        console.log("check")
         // Create audio elements
         startSoundRef.current = new Audio("/sounds/start.mp3"); // Path to your start sound
         breakSoundRef.current = new Audio("/sounds/break.mp3"); // Path to your break sound
