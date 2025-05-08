@@ -218,25 +218,25 @@ export const Timer: FC = () => {
                     <IndicatorGroup indicators={indicators} />
                 </div>
                 <div className="flex gap-4">
+                    <div className="hover:cursor-pointer flex flex-col justify-center" onClick={resetAll}>
+                        <Icon
+                            code="refresh"
+                            fill={false}
+                            className="text-3xl! sm:text-4xl!"
+                        />
+                    </div>
                     <div className="hover:cursor-pointer" onClick={toggleTimer}>
                         <Icon
                             code={isRunning ? "pause" : "play_arrow"}
                             fill={false}
-                            className="text-5xl sm:text-7xl"
+                            className="text-5xl! sm:text-7xl!"
                         />
                     </div>
-                    <div className="hover:cursor-pointer" onClick={resetAll}>
-                        <Icon
-                            code="refresh"
-                            fill={false}
-                            className="text-5xl sm:text-7xl"
-                        />
-                    </div>
-                    <div className="hover:cursor-pointer" onClick={toggleSound}>
+                    <div className="hover:cursor-pointer flex flex-col justify-center" onClick={toggleSound}>
                         <Icon
                             code={soundEnabled.current ? "volume_up" : "volume_off"}
                             fill={false}
-                            className="text-5xl sm:text-7xl"
+                            className="text-3xl! sm:text-4xl!"
                         />
                     </div>
                 </div>
