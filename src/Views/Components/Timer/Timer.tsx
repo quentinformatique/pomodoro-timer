@@ -1,13 +1,13 @@
-import {FC, useState, useEffect, useRef} from "react";
-import {DigitalTimer} from "./DigitalTimer.tsx";
-import {IndicatorGroup} from "./ProgressIndicators/IndicatorGroup.tsx";
-import {IndicatorState} from "./ProgressIndicators/IndicatorState.tsx";
-import {Icon} from "../Utilities/Icon.tsx";
+import { FC, useState, useEffect, useRef } from "react";
+import { DigitalTimer } from "./DigitalTimer.tsx";
+import { IndicatorGroup } from "./ProgressIndicators/IndicatorGroup.tsx";
+import { IndicatorState } from "./ProgressIndicators/IndicatorState.tsx";
+import { Icon } from "../Utilities/Icon.tsx";
 
 export const Timer: FC = () => {
-    const WORK_TIME = 1 * 10; // 10 seconds for testing (replace with 20 * 60 for 20 minutes)
-    const BREAK_TIME = 1 * 5; // 5 seconds for testing (replace with 5 * 60 for 5 minutes)
-    const LONG_BREAK_TIME = 1 * 15; // 15 seconds for testing (replace with 15 * 60 for 15 minutes)
+    const WORK_TIME = 20 * 60;
+    const BREAK_TIME = 5 * 60;
+    const LONG_BREAK_TIME = 15 * 60;
     const WORK_CYCLES = 4; // Number of work cycles before a long break
 
     const [timeLeft, setTimeLeft] = useState<number>(WORK_TIME);
@@ -20,6 +20,14 @@ export const Timer: FC = () => {
         Array(WORK_CYCLES).fill(IndicatorState.NotStarted)
     );
 
+    // Calculate progress percentage for the circle
+    const calculateProgress = () => {
+        const totalTime = isWorkCycle
+            ? WORK_TIME
+            : needsLongBreak ? LONG_BREAK_TIME : BREAK_TIME;
+        return 1 - (timeLeft / totalTime);
+    };
+
     // Audio refs
     const startSoundRef = useRef<HTMLAudioElement | null>(null);
     const breakSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -28,9 +36,9 @@ export const Timer: FC = () => {
     // Initialize audio elements
     useEffect(() => {
         // Create audio elements
-        startSoundRef.current = new Audio("/sounds/start.mp3"); // Path to your start sound
-        breakSoundRef.current = new Audio("/sounds/break.mp3"); // Path to your break sound
-        completeSoundRef.current = new Audio("/sounds/complete.mp3"); // Path to your complete sound
+        startSoundRef.current = new Audio("/sounds/start.mp3");
+        breakSoundRef.current = new Audio("/sounds/break.mp3");
+        completeSoundRef.current = new Audio("/sounds/complete.mp3");
 
         // Optional: Preload audio
         if (startSoundRef.current) startSoundRef.current.load();
@@ -206,17 +214,56 @@ export const Timer: FC = () => {
         soundEnabled.current = !soundEnabled.current;
     };
 
+    // SVG Circle parameters
+    const circleSize = 320; //  div size
+    const circleRadius = circleSize / 2;
+    const strokeWidth = 14; // border width
+    const normalizedRadius = circleRadius - strokeWidth / 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+
+    // Calculate the stroke dashoffset based on progress
+    const progress = calculateProgress();
+    const strokeDashoffset = circumference * (1 - progress);
+
+
     return (
         <div className="flex-1 flex flex-col justify-center">
-            <div className="flex flex-col gap-10 sm:gap-15 items-center justify-center border-14 border-green-dark p-10 rounded-full w-[320px] h-[320px] sm:w-[450px] sm:h-[450px]">
-                <div className="flex flex-col gap-3 sm:gap-5 items-center">
+            <div className="relative flex flex-col gap-10 sm:gap-15 items-center justify-center w-[320px] h-[320px] sm:w-[450px] sm:h-[450px]">
+                {/* SVG Circle for progress */}
+                <svg
+                    className="absolute top-0 left-0 w-full h-full -rotate-90"
+                    viewBox={`0 0 ${circleSize} ${circleSize}`}
+                >
+                    {/* Background circle */}
+                    <circle
+                        cx={circleRadius}
+                        cy={circleRadius}
+                        r={normalizedRadius}
+                        fill="transparent"
+                        stroke="#053D38" // green-dark tailwind color
+                        strokeWidth={strokeWidth}
+                    />
+                    {/* Progress circle */}
+                    <circle
+                        cx={circleRadius}
+                        cy={circleRadius}
+                        r={normalizedRadius}
+                        fill="transparent"
+                        stroke="#A3CCAB" // green-light tailwind color
+                        strokeWidth={strokeWidth}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <div className="z-10 flex flex-col gap-3 sm:gap-5 items-center mt-10">
                     <DigitalTimer value={formatTime(timeLeft)} />
                     <div className="text-sm text-center">
                         {isWorkCycle ? "Work Time" : needsLongBreak ? "Long Break" : "Short Break"}
                     </div>
                     <IndicatorGroup indicators={indicators} />
                 </div>
-                <div className="flex gap-4">
+                <div className="z-10 flex gap-4">
                     <div className="hover:cursor-pointer flex flex-col justify-center" onClick={resetAll}>
                         <Icon
                             code="refresh"
