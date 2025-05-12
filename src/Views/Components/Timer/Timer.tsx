@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef } from "react";
+  import { FC, useState, useEffect, useRef } from "react";
 import { DigitalTimer } from "./DigitalTimer.tsx";
 import { IndicatorGroup } from "./ProgressIndicators/IndicatorGroup.tsx";
 import { IndicatorState } from "./ProgressIndicators/IndicatorState.tsx";
