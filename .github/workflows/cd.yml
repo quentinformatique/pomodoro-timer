@@ -27,10 +27,9 @@ jobs:
         run: npm run build
 
       - name: Upload ftp
-        uses: genietim/ftp-action@releases/v4
+        uses: airvzxf/ftp-deployment-action@latest
         with:
-          host: ${{ secrets.FTP_SERVER }}
+          server: ${{ secrets.FTP_SERVER }}
           user: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          localDir: "dist"
-          remoteDir: "pomodoro"
+          local_dir: "./dist/"
