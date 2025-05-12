@@ -9,7 +9,7 @@ export const Footer : FC = () => {
                 </div>
                 <div className="bg-light-gray  p-5">
                     <p className="text-center text-xl">
-                        ©2025 Quentinformatique
+                        ©2025 Quentinformatique, <a className="underline" href="https://github.com/quentinformatique/pomodoro-timer">Github</a>
                     </p>
                 </div>
             </footer>
