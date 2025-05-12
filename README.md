@@ -6,7 +6,6 @@ A simple and elegant Pomodoro Timer application that helps you manage your time 
 
 ## Table of Contents
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [Installation](#installation)
 - [Running the Application](#running-the-application)
 - [Technologies Used](#technologies-used)
@@ -24,12 +23,6 @@ A simple and elegant Pomodoro Timer application that helps you manage your time 
 - Sound notifications for start, break, and completion
 - Responsive design for desktop and mobile devices
 
----
-
-## Screenshots
-![Screenshot 1](screenshots/screenshot1.png)
-![Screenshot 2](screenshots/screenshot2.png)
-![Screenshot 2](screenshots/screenshot3.png)
 
 ---
 
