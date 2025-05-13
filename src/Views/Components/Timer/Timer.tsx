@@ -6,7 +6,6 @@ import { Icon } from "../Utilities/Icon.tsx";
 import Cookies from "js-cookie";
 import { useTranslation } from "react-i18next";
 import { notificationService } from '../../../services/NotificationService';
-import { useNavigate } from "react-router-dom";
 
 interface PomodoroSettings {
     workDuration: number;
