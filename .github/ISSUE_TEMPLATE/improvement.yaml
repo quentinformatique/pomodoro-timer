@@ -1,0 +1,47 @@
+name: Improvement to existing functionality
+description: Suggest an improvement to something that already exists
+labels: ["improvement", "needs triage"]
+assignees: []
+
+body:
+    - type: textarea
+      id: summary
+      attributes:
+          label: Summary
+          value: One sentence summary of how something can be better.
+          render: markdown
+      validations:
+          required: true
+
+    - type: textarea
+      id: background
+      attributes:
+          label: Background
+          description: |
+              Is your improvement related to a problem? Please describe
+
+              A clear and concise description of what the problem is. Ex. I'm frustrated when [...]
+
+    - type: textarea
+      id: solution
+      attributes:
+          label: Describe the solution you'd like
+          description: A clear and concise description of what you want to happen.
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Describe alternatives you've considered
+          description: A clear and concise description of any alternative solutions or features you've considered.
+
+    - type: textarea
+      id: details
+      attributes:
+          label: Details
+          description: Details to understand how this task should be completed or carried out. What are the next steps? Add any other context or screenshots about the feature request here.
+
+    - type: textarea
+      id: outcome
+      attributes:
+          label: Outcome
+          description: One sentence to describe what the end result will be once this ticket is complete.
