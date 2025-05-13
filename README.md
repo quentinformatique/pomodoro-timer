@@ -1,4 +1,4 @@
-# Pomodoro Timer ⏳🍅
+# Pomodoro Timer ⏳
 
 A simple and elegant Pomodoro Timer application that helps you manage your time effectively using the Pomodoro Technique. This timer allows you to focus on your work while taking regular breaks to enhance productivity.
 
