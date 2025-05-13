@@ -44,14 +44,14 @@ export const Timer: FC = () => {
             setSettings(parsedSettings);
             setIndicators(Array(parsedSettings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted));
         }
-        // Charger l'état du son depuis les cookies
+        // Load sound state from cookies
         const savedSound = Cookies.get("soundEnabled");
         if (savedSound !== undefined) {
             setSoundEnabled(savedSound === "true");
         }
     }, []);
 
-    // Mettre à jour timeLeft quand les paramètres changent
+    // Update timeLeft when settings change
     useEffect(() => {
         if (isWorkCycle) {
             setTimeLeft(settings.workDuration * 60);
@@ -142,9 +142,9 @@ export const Timer: FC = () => {
 
     const toggleTimer = () => {
         if (!isRunning) {
-            // Démarrage du timer
+            // Start timer
             if (indicators.every(state => state === IndicatorState.NotStarted)) {
-                // Premier démarrage
+                // First start
                 setIndicators(prev => {
                     const updated = [...prev];
                     updated[0] = IndicatorState.InProgress;
@@ -155,7 +155,7 @@ export const Timer: FC = () => {
                 setTimeLeft(settings.workDuration * 60);
                 playSound('start');
             } else {
-                // Reprise après pause
+                // Resume after pause
                 playSound('start');
             }
         }
@@ -235,10 +235,10 @@ export const Timer: FC = () => {
     };
 
     const resetAll = () => {
-        // Arrêter le timer
+        // Stop timer
         setIsRunning(false);
         
-        // Réinitialiser tous les états
+        // Reset all states
         setTimeLeft(settings.workDuration * 60);
         setIsWorkCycle(true);
         setCurrentCycle(0);
