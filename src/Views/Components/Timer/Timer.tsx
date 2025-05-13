@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef, useCallback } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import { DigitalTimer } from "./DigitalTimer.tsx";
 import { IndicatorGroup } from "./ProgressIndicators/IndicatorGroup.tsx";
 import { IndicatorState } from "./ProgressIndicators/IndicatorState.tsx";
@@ -34,7 +34,6 @@ export const Timer: FC = () => {
     const [indicators, setIndicators] = useState<IndicatorState[]>(
         Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted)
     );
-    const navigate = useNavigate();
 
     // Load settings from cookies
     useEffect(() => {
