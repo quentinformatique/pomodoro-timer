@@ -1,16 +1,25 @@
-import {FC} from "react";
+import { FC } from "react";
+import { useNavigate } from "react-router-dom";
+import { Icon } from "../Utilities/Icon";
 
 
 export const Footer : FC = () => {
+    const navigate = useNavigate();
     return (<>
             <footer className="flex-none w-full">
-                <div className="h-14 bg-[url('/src/assets/wave.svg')] bg-cover bg-no-repeat bg-center">
-
-                </div>
-                <div className="bg-light-gray  p-5">
-                    <p className="text-center text-xl">
-                        ©2025 Quentinformatique, <a className="underline" href="https://github.com/quentinformatique/pomodoro-timer">Github</a>
-                    </p>
+                <div className="h-14 bg-[url('/src/assets/wave.svg')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex w-full justify-center items-center">
+                    <div className="bg-light-gray p-5 flex justify-center items-center w-full">
+                        <p className="text-xl">
+                            ©2025 Quentinformatique
+                        </p>
+                        <button
+                            onClick={() => navigate("/guide")}
+                            className="flex items-center gap-2 px-4 py-2 text-green-light/70 hover:text-green-light transition-colors rounded-lg hover:bg-green-dark/20">
+                            <Icon code="help_outline" fill={false} className="text-xl" />
+                            <span className="text-sm">Guide</span>
+                        </button>
+                    </div>
                 </div>
             </footer>
         </>)

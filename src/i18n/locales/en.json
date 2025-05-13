@@ -1,0 +1,88 @@
+{
+    "settings": {
+        "title": "Settings",
+        "durations": {
+            "title": "Durations",
+            "workDuration": "Work duration",
+            "shortBreakDuration": "Short break duration",
+            "longBreakDuration": "Long break duration"
+        },
+        "cycles": {
+            "title": "Cycles",
+            "cyclesBeforeLongBreak": "Cycles before long break"
+        },
+        "save": "Save",
+        "units": {
+            "minutes": "minutes",
+            "cycles": "cycles"
+        },
+        "appearance": {
+            "title": "Appearance",
+            "theme": "Theme",
+            "themes": {
+                "default": "Dark",
+                "light": "Light"
+            }
+        },
+        "notifications": {
+            "title": "Notifications",
+            "enable": "Enable notifications",
+            "enabled": "Notifications enabled",
+            "disabled": "Notifications disabled",
+            "permission": "Allow notifications to get alerts when cycles end"
+        }
+    },
+    "timer": {
+        "workTime": "Work Time",
+        "shortBreak": "Short Break",
+        "longBreak": "Long Break"
+    },
+    "language": {
+        "title": "Language",
+        "en": "English",
+        "fr": "Français"
+    },
+    "notifications": {
+        "workStart": "Time to focus! Work session started.",
+        "shortBreakStart": "Take a short break!",
+        "longBreakStart": "Great job! Time for a long break."
+    },
+    "shortcuts": {
+        "title": "Keyboard Shortcuts",
+        "space": "Play/Pause",
+        "r": "Reset timer",
+        "m": "Toggle sound",
+        "esc": "Back to timer"
+    },
+    "guide": {
+        "title": "User Guide",
+        "settings": {
+            "helpDescription": "Need help? Check out our user guide to discover all features.",
+            "openGuide": "Open guide"
+        },
+        "introduction": {
+            "title": "Introduction",
+            "description": "The Pomodoro Timer is a time management technique that helps you stay focused and productive. The method involves working for 25 minutes followed by a short break."
+        },
+        "timer": {
+            "title": "Timer",
+            "description": "The timer is at the heart of the Pomodoro technique. By default, it's set to 25 minutes of work followed by a 5-minute short break. After 4 cycles, you get a longer 15-minute break.",
+            "controls": "Use the control buttons to start, pause, or reset the timer. You can also use keyboard shortcuts."
+        },
+        "cycles": {
+            "title": "Work Cycles",
+            "description": "A complete cycle consists of a work period followed by a break. After 4 work cycles, you earn a longer break to rest and recharge."
+        },
+        "settings": {
+            "title": "Settings",
+            "description": "Customize your experience by adjusting period durations, changing the theme, language, and enabling notifications to never miss a cycle change."
+        },
+        "shortcuts": {
+            "title": "Keyboard Shortcuts",
+            "playPause": "Play/Pause",
+            "reset": "Reset",
+            "mute": "Toggle sound",
+            "back": "Go back"
+        }
+    }
+} 
