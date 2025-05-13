@@ -1,0 +1,86 @@
+{
+    "settings": {
+        "title": "Paramètres",
+        "durations": {
+            "title": "Durées",
+            "workDuration": "Durée de travail",
+            "shortBreakDuration": "Durée pause courte",
+            "longBreakDuration": "Durée pause longue"
+        },
+        "cycles": {
+            "title": "Cycles",
+            "cyclesBeforeLongBreak": "Cycles avant pause longue"
+        },
+        "save": "Sauvegarder",
+        "units": {
+            "minutes": "minutes",
+            "cycles": "cycles"
+        },
+        "appearance": {
+            "title": "Apparence",
+            "theme": "Thème",
+            "themes": {
+                "default": "Sombre",
+                "light": "Clair"
+            }
+        },
+        "notifications": {
+            "title": "Notifications",
+            "enable": "Activer les notifications",
+            "enabled": "Notifications activées",
+            "disabled": "Notifications désactivées",
+            "permission": "Autorisez les notifications pour être alerté à la fin des cycles"
+        }
+    },
+    "timer": {
+        "workTime": "Temps de travail",
+        "shortBreak": "Pause courte",
+        "longBreak": "Pause longue"
+    },
+    "language": {
+        "title": "Langue",
+        "en": "English",
+        "fr": "Français"
+    },
+    "notifications": {
+        "workStart": "C'est l'heure de se concentrer ! Session de travail démarrée.",
+        "shortBreakStart": "Prenez une courte pause !",
+        "longBreakStart": "Excellent travail ! C'est l'heure d'une longue pause."
+    },
+    "shortcuts": {
+        "title": "Raccourcis clavier",
+        "space": "Lecture/Pause",
+        "r": "Réinitialiser",
+        "m": "Son on/off",
+        "esc": "Retour au minuteur"
+    },
+    "guide": {
+        "title": "Guide d'utilisation",
+        "introduction": {
+            "title": "Introduction",
+            "description": "Le Pomodoro Timer est une technique de gestion du temps qui vous aide à rester concentré et productif. La méthode consiste à travailler pendant 25 minutes, suivies d'une courte pause."
+        },
+        "timer": {
+            "title": "Minuteur",
+            "description": "Le minuteur est au cœur de la technique Pomodoro. Par défaut, il est réglé sur 25 minutes de travail, suivies de 5 minutes de pause courte. Après 4 cycles, vous bénéficiez d'une pause longue de 15 minutes.",
+            "controls": "Utilisez les boutons de contrôle pour démarrer, mettre en pause ou réinitialiser le minuteur. Vous pouvez également utiliser les raccourcis clavier."
+        },
+        "cycles": {
+            "title": "Cycles de travail",
+            "description": "Un cycle complet se compose d'une période de travail suivie d'une pause. Après 4 cycles de travail, vous méritez une pause plus longue pour vous reposer et vous ressourcer."
+        },
+        "settings": {
+            "title": "Paramètres",
+            "description": "Personnalisez votre expérience en ajustant la durée des périodes, en changeant le thème, la langue, et en activant les notifications pour ne jamais manquer un changement de cycle.",
+            "helpDescription": "Besoin d'aide ? Consultez notre guide d'utilisation pour découvrir toutes les fonctionnalités.",
+            "openGuide": "Ouvrir le guide"
+        },
+        "shortcuts": {
+            "title": "Raccourcis clavier",
+            "playPause": "Lecture/Pause",
+            "reset": "Réinitialiser",
+            "mute": "Son on/off",
+            "back": "Retour"
+        }
+    }
+} 

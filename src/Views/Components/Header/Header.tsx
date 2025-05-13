@@ -1,7 +1,10 @@
 import {FC} from "react";
 import {Icon} from "../Utilities/Icon.tsx";
+import { useNavigate } from "react-router-dom";
 
 export const Header : FC = () => {
+    const navigate = useNavigate();
+
     return (<>
             <header className="flex-none flex">
                 <div className="flex mt-8">
@@ -14,7 +17,7 @@ export const Header : FC = () => {
                         </p>
                     </div>
                 </div>
-                <div className="fixed top-9 right-4 sm:right-9 hover:cursor-not-allowed">
+                <div className="fixed top-9 right-4 sm:right-9 hover:cursor-pointer" onClick={() => navigate("/settings")}>
                     <Icon code="settings" fill={false} className="text-3xl! sm:text-4xl! md:text-5xl! lg:text-6xl!"/>
                 </div>
             </header>

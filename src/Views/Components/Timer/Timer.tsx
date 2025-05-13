@@ -1,30 +1,70 @@
-  import { FC, useState, useEffect, useRef } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import { DigitalTimer } from "./DigitalTimer.tsx";
 import { IndicatorGroup } from "./ProgressIndicators/IndicatorGroup.tsx";
 import { IndicatorState } from "./ProgressIndicators/IndicatorState.tsx";
 import { Icon } from "../Utilities/Icon.tsx";
+import Cookies from "js-cookie";
+import { useTranslation } from "react-i18next";
+import { notificationService } from '../../../services/NotificationService';
+
+interface PomodoroSettings {
+    workDuration: number;
+    shortBreakDuration: number;
+    longBreakDuration: number;
+    cyclesBeforeLongBreak: number;
+}
+
+const defaultSettings: PomodoroSettings = {
+    workDuration: 25,
+    shortBreakDuration: 5,
+    longBreakDuration: 15,
+    cyclesBeforeLongBreak: 4,
+};
 
 export const Timer: FC = () => {
-    const WORK_TIME = 20 * 60;
-    const BREAK_TIME = 5 * 60;
-    const LONG_BREAK_TIME = 15 * 60;
-    const WORK_CYCLES = 4; // Number of work cycles before a long break
-
-    const [timeLeft, setTimeLeft] = useState<number>(WORK_TIME);
+    const { t } = useTranslation();
+    const [settings, setSettings] = useState<PomodoroSettings>(defaultSettings);
+    const [timeLeft, setTimeLeft] = useState<number>(settings.workDuration * 60);
     const [isRunning, setIsRunning] = useState<boolean>(false);
-    const [isWorkCycle, setIsWorkCycle] = useState<boolean>(true); // true = work, false = break
-    const [currentCycle, setCurrentCycle] = useState<number>(0); // Index of current cycle
-    const [needsLongBreak, setNeedsLongBreak] = useState<boolean>(false); // Indicates if a long break is needed
-    const soundEnabled = useRef<boolean>(true); // Sound toggle state
+    const [isWorkCycle, setIsWorkCycle] = useState<boolean>(true);
+    const [currentCycle, setCurrentCycle] = useState<number>(0);
+    const [needsLongBreak, setNeedsLongBreak] = useState<boolean>(false);
+    const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
     const [indicators, setIndicators] = useState<IndicatorState[]>(
-        Array(WORK_CYCLES).fill(IndicatorState.NotStarted)
+        Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted)
     );
+
+    // Load settings from cookies
+    useEffect(() => {
+        const savedSettings = Cookies.get("pomodoroSettings");
+        if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            setSettings(parsedSettings);
+            setIndicators(Array(parsedSettings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted));
+        }
+        // Load sound state from cookies
+        const savedSound = Cookies.get("soundEnabled");
+        if (savedSound !== undefined) {
+            setSoundEnabled(savedSound === "true");
+        }
+    }, []);
+
+    // Update timeLeft when settings change
+    useEffect(() => {
+        if (isWorkCycle) {
+            setTimeLeft(settings.workDuration * 60);
+        } else if (needsLongBreak) {
+            setTimeLeft(settings.longBreakDuration * 60);
+        } else {
+            setTimeLeft(settings.shortBreakDuration * 60);
+        }
+    }, [settings, isWorkCycle, needsLongBreak]);
 
     // Calculate progress percentage for the circle
     const calculateProgress = () => {
         const totalTime = isWorkCycle
-            ? WORK_TIME
-            : needsLongBreak ? LONG_BREAK_TIME : BREAK_TIME;
+            ? settings.workDuration * 60
+            : needsLongBreak ? settings.longBreakDuration * 60 : settings.shortBreakDuration * 60;
         return 1 - (timeLeft / totalTime);
     };
 
@@ -55,7 +95,7 @@ export const Timer: FC = () => {
 
     // Function to play sounds
     const playSound = (soundType: 'start' | 'break' | 'complete') => {
-        if (!soundEnabled.current) return;
+        if (!soundEnabled) return;
 
         try {
             if (soundType === 'start' && startSoundRef.current) {
@@ -99,28 +139,25 @@ export const Timer: FC = () => {
     }, [isRunning]);
 
     const toggleTimer = () => {
-        setIsRunning((prev) => {
-            if (!prev) {
-                // Start the first work cycle if not running
-                if (!isRunning && indicators.every(state => state === IndicatorState.NotStarted)) {
-                    // If starting for the first time, set the first indicator to InProgress
-                    setIndicators(prev => {
-                        const updated = [...prev];
-                        updated[0] = IndicatorState.InProgress;
-                        return updated;
-                    });
-                    setCurrentCycle(0);
-                    setIsWorkCycle(true);
-                    setTimeLeft(WORK_TIME);
-                    // Play start sound
-                    playSound('start');
-                } else {
-                    // Resume from pause
-                    playSound('start');
-                }
+        if (!isRunning) {
+            // Start timer
+            if (indicators.every(state => state === IndicatorState.NotStarted)) {
+                // First start
+                setIndicators(prev => {
+                    const updated = [...prev];
+                    updated[0] = IndicatorState.InProgress;
+                    return updated;
+                });
+                setCurrentCycle(0);
+                setIsWorkCycle(true);
+                setTimeLeft(settings.workDuration * 60);
+                playSound('start');
+            } else {
+                // Resume after pause
+                playSound('start');
             }
-            return !prev;
-        });
+        }
+        setIsRunning(prev => !prev);
     };
 
     const handleCycleEnd = () => {
@@ -133,15 +170,15 @@ export const Timer: FC = () => {
             });
 
             // Check if all work cycles are completed
-            if (currentCycle >= WORK_CYCLES - 1) {
+            if (currentCycle >= settings.cyclesBeforeLongBreak - 1) {
                 // All cycles are done, start the long break
                 setNeedsLongBreak(true);
-                setTimeLeft(LONG_BREAK_TIME);
+                setTimeLeft(settings.longBreakDuration * 60);
                 // Play break sound
                 playSound('break');
             } else {
                 // Start a standard break
-                setTimeLeft(BREAK_TIME);
+                setTimeLeft(settings.shortBreakDuration * 60);
                 // Play break sound
                 playSound('break');
             }
@@ -164,7 +201,7 @@ export const Timer: FC = () => {
                         updated[0] = IndicatorState.InProgress;
                         return updated;
                     });
-                    setTimeLeft(WORK_TIME);
+                    setTimeLeft(settings.workDuration * 60);
                     setIsRunning(true);
                     // Play start sound for new cycle
                     playSound('start');
@@ -178,13 +215,13 @@ export const Timer: FC = () => {
                 // Mark the next cycle as in progress
                 setIndicators(prev => {
                     const updated = [...prev];
-                    if (nextCycle < WORK_CYCLES) {
+                    if (nextCycle < settings.cyclesBeforeLongBreak) {
                         updated[nextCycle] = IndicatorState.InProgress;
                     }
                     return updated;
                 });
 
-                setTimeLeft(WORK_TIME);
+                setTimeLeft(settings.workDuration * 60);
                 setIsWorkCycle(true);
                 // Play start sound
                 playSound('start');
@@ -196,12 +233,15 @@ export const Timer: FC = () => {
     };
 
     const resetAll = () => {
-        setTimeLeft(WORK_TIME);
+        // Stop timer
         setIsRunning(false);
+        
+        // Reset all states
+        setTimeLeft(settings.workDuration * 60);
         setIsWorkCycle(true);
         setCurrentCycle(0);
         setNeedsLongBreak(false);
-        setIndicators(Array(WORK_CYCLES).fill(IndicatorState.NotStarted));
+        setIndicators(Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted));
     };
 
     const formatTime = (seconds: number) => {
@@ -211,13 +251,17 @@ export const Timer: FC = () => {
     };
 
     const toggleSound = () => {
-        soundEnabled.current = !soundEnabled.current;
+        setSoundEnabled(prev => {
+            const newValue = !prev;
+            Cookies.set("soundEnabled", String(newValue), { expires: 365 });
+            return newValue;
+        });
     };
 
     // SVG Circle parameters
-    const circleSize = 320; //  div size
+    const circleSize = 320;
     const circleRadius = circleSize / 2;
-    const strokeWidth = 14; // border width
+    const strokeWidth = 14;
     const normalizedRadius = circleRadius - strokeWidth / 2;
     const circumference = normalizedRadius * 2 * Math.PI;
 
@@ -225,45 +269,96 @@ export const Timer: FC = () => {
     const progress = calculateProgress();
     const strokeDashoffset = circumference * (1 - progress);
 
+    // Keyboard shortcuts handler
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Ignore if we're in a text input
+            if (event.target instanceof HTMLInputElement) return;
+
+            // Space for play/pause
+            if (event.code === 'Space') {
+                event.preventDefault();
+                if (!isRunning) {
+                    playSound('start');
+                }
+                setIsRunning(!isRunning);
+            }
+            
+            // R to reset timer
+            if (event.code === 'KeyR') {
+                event.preventDefault();
+                resetAll();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isRunning, playSound, resetAll]);
+
+    // Notify state changes
+    useEffect(() => {
+        if (!isRunning) return;
+
+        const notifyState = async () => {
+            if (isWorkCycle) {
+                await notificationService.notifyPomodoroState('work');
+            } else if (needsLongBreak) {
+                await notificationService.notifyPomodoroState('longBreak');
+            } else {
+                await notificationService.notifyPomodoroState('shortBreak');
+            }
+        };
+
+        notifyState();
+    }, [isWorkCycle, needsLongBreak, isRunning]);
 
     return (
-        <div className="flex-1 flex flex-col justify-center">
-            <div className="relative flex flex-col gap-10 sm:gap-15 items-center justify-center w-[320px] h-[320px] sm:w-[450px] sm:h-[450px]">
-                {/* SVG Circle for progress */}
-                <svg
-                    className="absolute top-0 left-0 w-full h-full -rotate-90"
-                    viewBox={`0 0 ${circleSize} ${circleSize}`}
-                >
-                    {/* Background circle */}
-                    <circle
-                        cx={circleRadius}
-                        cy={circleRadius}
-                        r={normalizedRadius}
-                        fill="transparent"
-                        stroke="#053D38" // green-dark tailwind color
-                        strokeWidth={strokeWidth}
-                    />
-                    {/* Progress circle */}
-                    <circle
-                        cx={circleRadius}
-                        cy={circleRadius}
-                        r={normalizedRadius}
-                        fill="transparent"
-                        stroke="#A3CCAB" // green-light tailwind color
-                        strokeWidth={strokeWidth}
-                        strokeDasharray={circumference}
-                        strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="round"
-                    />
-                </svg>
-                <div className="z-10 flex flex-col gap-3 sm:gap-5 items-center mt-10">
-                    <DigitalTimer value={formatTime(timeLeft)} />
-                    <div className="text-sm text-center">
-                        {isWorkCycle ? "Work Time" : needsLongBreak ? "Long Break" : "Short Break"}
+        <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col justify-center">
+                <div className="relative w-80 h-80 sm:w-96 sm:h-96 mx-auto flex items-center justify-center">
+                    {/* SVG Circle for progress */}
+                    <svg
+                        className="absolute top-0 left-0 w-full h-full -rotate-90"
+                        viewBox={`0 0 ${circleSize} ${circleSize}`}
+                    >
+                        {/* Background circle */}
+                        <circle
+                            cx={circleRadius}
+                            cy={circleRadius}
+                            r={normalizedRadius}
+                            fill="transparent"
+                            stroke="#053D38"
+                            strokeWidth={strokeWidth}
+                        />
+                        {/* Progress circle */}
+                        <circle
+                            cx={circleRadius}
+                            cy={circleRadius}
+                            r={normalizedRadius}
+                            fill="transparent"
+                            stroke="#A3CCAB"
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={circumference}
+                            strokeDashoffset={strokeDashoffset}
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                    <div className="z-10 flex flex-col gap-3 sm:gap-5 items-center mt-10">
+                        <DigitalTimer value={formatTime(timeLeft)} />
+                        <div className="text-sm text-center">
+                            {isWorkCycle 
+                                ? t('timer.workTime')
+                                : needsLongBreak 
+                                    ? t('timer.longBreak')
+                                    : t('timer.shortBreak')
+                            }
+                        </div>
+                        <IndicatorGroup indicators={indicators} />
                     </div>
-                    <IndicatorGroup indicators={indicators} />
                 </div>
-                <div className="z-10 flex gap-4">
+                <div className="flex justify-center gap-10 mt-10">
                     <div className="hover:cursor-pointer flex flex-col justify-center" onClick={resetAll}>
                         <Icon
                             code="refresh"
@@ -280,7 +375,7 @@ export const Timer: FC = () => {
                     </div>
                     <div className="hover:cursor-pointer flex flex-col justify-center" onClick={toggleSound}>
                         <Icon
-                            code={soundEnabled.current ? "volume_up" : "volume_off"}
+                            code={soundEnabled ? "volume_up" : "volume_off"}
                             fill={false}
                             className="text-3xl! sm:text-4xl!"
                         />
