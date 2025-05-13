@@ -1,4 +1,4 @@
-import { FC, useState, ReactElement } from "react";
+import { FC, useState, ReactElement, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../Utilities/Icon";
@@ -19,6 +19,18 @@ export const Guide: FC = () => {
         timer: { icon: 'timer', component: <TimerGuide /> },
         shortcuts: { icon: 'keyboard', component: <ShortcutsGuide /> }
     };
+    
+    // escape key
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                navigate('/');
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [navigate]);
 
     return (
         <BaseLayout>

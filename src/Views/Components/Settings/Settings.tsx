@@ -65,7 +65,7 @@ export const Settings: FC = () => {
         navigate("/");
     };
 
-    // Gérer la touche Escape
+    // escape key
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {

@@ -1,9 +1,8 @@
-  import { FC, useState, useEffect, useRef } from "react";
+import { FC, useState, useEffect, useRef, useCallback } from "react";
 import { DigitalTimer } from "./DigitalTimer.tsx";
 import { IndicatorGroup } from "./ProgressIndicators/IndicatorGroup.tsx";
 import { IndicatorState } from "./ProgressIndicators/IndicatorState.tsx";
 import { Icon } from "../Utilities/Icon.tsx";
-import { Footer } from "../Footer/Footer.tsx";
 import Cookies from "js-cookie";
 import { useTranslation } from "react-i18next";
 import { notificationService } from '../../../services/NotificationService';
@@ -31,7 +30,7 @@ export const Timer: FC = () => {
     const [isWorkCycle, setIsWorkCycle] = useState<boolean>(true);
     const [currentCycle, setCurrentCycle] = useState<number>(0);
     const [needsLongBreak, setNeedsLongBreak] = useState<boolean>(false);
-    const soundEnabled = useRef<boolean>(true);
+    const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
     const [indicators, setIndicators] = useState<IndicatorState[]>(
         Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted)
     );
@@ -43,10 +42,25 @@ export const Timer: FC = () => {
         if (savedSettings) {
             const parsedSettings = JSON.parse(savedSettings);
             setSettings(parsedSettings);
-            setTimeLeft(parsedSettings.workDuration * 60);
             setIndicators(Array(parsedSettings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted));
         }
+        // Charger l'état du son depuis les cookies
+        const savedSound = Cookies.get("soundEnabled");
+        if (savedSound !== undefined) {
+            setSoundEnabled(savedSound === "true");
+        }
     }, []);
+
+    // Mettre à jour timeLeft quand les paramètres changent
+    useEffect(() => {
+        if (isWorkCycle) {
+            setTimeLeft(settings.workDuration * 60);
+        } else if (needsLongBreak) {
+            setTimeLeft(settings.longBreakDuration * 60);
+        } else {
+            setTimeLeft(settings.shortBreakDuration * 60);
+        }
+    }, [settings, isWorkCycle, needsLongBreak]);
 
     // Calculate progress percentage for the circle
     const calculateProgress = () => {
@@ -83,7 +97,7 @@ export const Timer: FC = () => {
 
     // Function to play sounds
     const playSound = (soundType: 'start' | 'break' | 'complete') => {
-        if (!soundEnabled.current) return;
+        if (!soundEnabled) return;
 
         try {
             if (soundType === 'start' && startSoundRef.current) {
@@ -127,28 +141,25 @@ export const Timer: FC = () => {
     }, [isRunning]);
 
     const toggleTimer = () => {
-        setIsRunning((prev) => {
-            if (!prev) {
-                // Start the first work cycle if not running
-                if (!isRunning && indicators.every(state => state === IndicatorState.NotStarted)) {
-                    // If starting for the first time, set the first indicator to InProgress
-                    setIndicators(prev => {
-                        const updated = [...prev];
-                        updated[0] = IndicatorState.InProgress;
-                        return updated;
-                    });
-                    setCurrentCycle(0);
-                    setIsWorkCycle(true);
-                    setTimeLeft(settings.workDuration * 60);
-                    // Play start sound
-                    playSound('start');
-                } else {
-                    // Resume from pause
-                    playSound('start');
-                }
+        if (!isRunning) {
+            // Démarrage du timer
+            if (indicators.every(state => state === IndicatorState.NotStarted)) {
+                // Premier démarrage
+                setIndicators(prev => {
+                    const updated = [...prev];
+                    updated[0] = IndicatorState.InProgress;
+                    return updated;
+                });
+                setCurrentCycle(0);
+                setIsWorkCycle(true);
+                setTimeLeft(settings.workDuration * 60);
+                playSound('start');
+            } else {
+                // Reprise après pause
+                playSound('start');
             }
-            return !prev;
-        });
+        }
+        setIsRunning(prev => !prev);
     };
 
     const handleCycleEnd = () => {
@@ -224,8 +235,11 @@ export const Timer: FC = () => {
     };
 
     const resetAll = () => {
-        setTimeLeft(settings.workDuration * 60);
+        // Arrêter le timer
         setIsRunning(false);
+        
+        // Réinitialiser tous les états
+        setTimeLeft(settings.workDuration * 60);
         setIsWorkCycle(true);
         setCurrentCycle(0);
         setNeedsLongBreak(false);
@@ -239,7 +253,11 @@ export const Timer: FC = () => {
     };
 
     const toggleSound = () => {
-        soundEnabled.current = !soundEnabled.current;
+        setSoundEnabled(prev => {
+            const newValue = !prev;
+            Cookies.set("soundEnabled", String(newValue), { expires: 365 });
+            return newValue;
+        });
     };
 
     // SVG Circle parameters
@@ -253,28 +271,33 @@ export const Timer: FC = () => {
     const progress = calculateProgress();
     const strokeDashoffset = circumference * (1 - progress);
 
-    // Handle keyboard shortcuts
+    // Keyboard shortcuts handler
     useEffect(() => {
-        const handleKeyPress = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement) return;
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Ignore if we're in a text input
+            if (event.target instanceof HTMLInputElement) return;
 
-            switch (e.code) {
-                case 'Space':
-                    e.preventDefault();
-                    toggleTimer();
-                    break;
-                case 'KeyR':
-                    resetAll();
-                    break;
-                case 'KeyM':
-                    toggleSound();
-                    break;
+            // Space for play/pause
+            if (event.code === 'Space') {
+                event.preventDefault();
+                if (!isRunning) {
+                    playSound('start');
+                }
+                setIsRunning(!isRunning);
+            }
+            
+            // R to reset timer
+            if (event.code === 'KeyR') {
+                event.preventDefault();
+                resetAll();
             }
         };
 
-        window.addEventListener('keydown', handleKeyPress);
-        return () => window.removeEventListener('keydown', handleKeyPress);
-    }, []);
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isRunning, playSound, resetAll]);
 
     // Notify state changes
     useEffect(() => {
@@ -354,7 +377,7 @@ export const Timer: FC = () => {
                     </div>
                     <div className="hover:cursor-pointer flex flex-col justify-center" onClick={toggleSound}>
                         <Icon
-                            code={soundEnabled.current ? "volume_up" : "volume_off"}
+                            code={soundEnabled ? "volume_up" : "volume_off"}
                             fill={false}
                             className="text-3xl! sm:text-4xl!"
                         />

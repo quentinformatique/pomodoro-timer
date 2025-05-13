@@ -7,7 +7,6 @@ export const ShortcutsGuide: FC = () => {
     const shortcuts = [
         { key: 'Space', label: 'shortcuts.space', description: 'guide.shortcuts.playPause' },
         { key: 'R', label: 'shortcuts.r', description: 'guide.shortcuts.reset' },
-        { key: 'M', label: 'shortcuts.m', description: 'guide.shortcuts.mute' },
         { key: 'Esc', label: 'shortcuts.esc', description: 'guide.shortcuts.back' }
     ];
 
