@@ -22,7 +22,6 @@ export const Timer: FC = () => {
     const [timeLeft, setTimeLeft] = useState<number>(0);
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isWorkCycle, setIsWorkCycle] = useState<boolean>(true);
-    const [currentCycle, setCurrentCycle] = useState<number>(0);
     const [needsLongBreak, setNeedsLongBreak] = useState<boolean>(false);
     const [indicators, setIndicators] = useState<IndicatorState[]>([]);
     const [settings, setSettings] = useState<PomodoroSettings>({
