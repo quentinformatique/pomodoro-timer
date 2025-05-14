@@ -6,6 +6,7 @@ import { Icon } from "../Utilities/Icon.tsx";
 import Cookies from "js-cookie";
 import { useTranslation } from "react-i18next";
 import { notificationService } from '../../../services/NotificationService';
+import { timerService } from '../../../services/TimerService';
 
 interface PomodoroSettings {
     workDuration: number;
@@ -14,64 +15,62 @@ interface PomodoroSettings {
     cyclesBeforeLongBreak: number;
 }
 
-const defaultSettings: PomodoroSettings = {
-    workDuration: 25,
-    shortBreakDuration: 5,
-    longBreakDuration: 15,
-    cyclesBeforeLongBreak: 4,
-};
-
 export const Timer: FC = () => {
     const { t } = useTranslation();
-    const [settings, setSettings] = useState<PomodoroSettings>(defaultSettings);
-    const [timeLeft, setTimeLeft] = useState<number>(settings.workDuration * 60);
+    
+    // États locaux pour le rendu
+    const [timeLeft, setTimeLeft] = useState<number>(0);
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isWorkCycle, setIsWorkCycle] = useState<boolean>(true);
-    const [currentCycle, setCurrentCycle] = useState<number>(0);
     const [needsLongBreak, setNeedsLongBreak] = useState<boolean>(false);
+    const [indicators, setIndicators] = useState<IndicatorState[]>([]);
+    const [settings, setSettings] = useState<PomodoroSettings>({
+        workDuration: 25,
+        shortBreakDuration: 5,
+        longBreakDuration: 15,
+        cyclesBeforeLongBreak: 4,
+    });
     const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-    const [indicators, setIndicators] = useState<IndicatorState[]>(
-        Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted)
-    );
-
-    // Load settings from cookies
-    useEffect(() => {
-        const savedSettings = Cookies.get("pomodoroSettings");
-        if (savedSettings) {
-            const parsedSettings = JSON.parse(savedSettings);
-            setSettings(parsedSettings);
-            setIndicators(Array(parsedSettings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted));
-        }
-        // Load sound state from cookies
-        const savedSound = Cookies.get("soundEnabled");
-        if (savedSound !== undefined) {
-            setSoundEnabled(savedSound === "true");
-        }
-    }, []);
-
-    // Update timeLeft when settings change
-    useEffect(() => {
-        if (isWorkCycle) {
-            setTimeLeft(settings.workDuration * 60);
-        } else if (needsLongBreak) {
-            setTimeLeft(settings.longBreakDuration * 60);
-        } else {
-            setTimeLeft(settings.shortBreakDuration * 60);
-        }
-    }, [settings, isWorkCycle, needsLongBreak]);
-
-    // Calculate progress percentage for the circle
-    const calculateProgress = () => {
-        const totalTime = isWorkCycle
-            ? settings.workDuration * 60
-            : needsLongBreak ? settings.longBreakDuration * 60 : settings.shortBreakDuration * 60;
-        return 1 - (timeLeft / totalTime);
-    };
 
     // Audio refs
     const startSoundRef = useRef<HTMLAudioElement | null>(null);
     const breakSoundRef = useRef<HTMLAudioElement | null>(null);
     const completeSoundRef = useRef<HTMLAudioElement | null>(null);
+    
+    // Pour suivre le changement d'état précédent
+    const prevRunningRef = useRef(false);
+    const prevWorkCycleRef = useRef(true);
+    const prevNeedsLongBreakRef = useRef(false);
+
+    // Synchroniser l'état local avec le service
+    useEffect(() => {
+        const syncWithService = () => {
+            const state = timerService.getState();
+            setTimeLeft(state.timeLeft);
+            setIsRunning(state.isRunning);
+            setIsWorkCycle(state.isWorkCycle);
+            setNeedsLongBreak(state.needsLongBreak);
+            setIndicators(state.indicators);
+            setSettings(state.settings);
+        };
+        
+        // Synchronisation initiale
+        syncWithService();
+        
+        // S'abonner aux mises à jour
+        const unsubscribe = timerService.subscribe(syncWithService);
+        
+        // Se désabonner lors du nettoyage
+        return unsubscribe;
+    }, []);
+
+    // Load sound state from cookies
+    useEffect(() => {
+        const savedSound = Cookies.get("soundEnabled");
+        if (savedSound !== undefined) {
+            setSoundEnabled(savedSound === "true");
+        }
+    }, []);
 
     // Initialize audio elements
     useEffect(() => {
@@ -113,135 +112,46 @@ export const Timer: FC = () => {
         }
     };
 
+    // Jouer les sons au changement d'état du timer
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        let timer: NodeJS.Timeout | null = null;
-
-        if (isRunning) {
-            timer = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
-                        clearInterval(timer!);
-                        // Brief pause before starting the next cycle
-                        setIsRunning(false);
-                        handleCycleEnd();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
+        // Ne pas jouer de son lors du premier rendu
+        if (prevRunningRef.current === isRunning && 
+            prevWorkCycleRef.current === isWorkCycle && 
+            prevNeedsLongBreakRef.current === needsLongBreak) {
+            return;
         }
-
-        return () => {
-            if (timer) clearInterval(timer);
-        };
-    }, [isRunning]);
-
-    const toggleTimer = () => {
-        if (!isRunning) {
-            // Start timer
-            if (indicators.every(state => state === IndicatorState.NotStarted)) {
-                // First start
-                setIndicators(prev => {
-                    const updated = [...prev];
-                    updated[0] = IndicatorState.InProgress;
-                    return updated;
-                });
-                setCurrentCycle(0);
-                setIsWorkCycle(true);
-                setTimeLeft(settings.workDuration * 60);
+        
+        // Mettre à jour les références
+        prevRunningRef.current = isRunning;
+        prevWorkCycleRef.current = isWorkCycle;
+        prevNeedsLongBreakRef.current = needsLongBreak;
+        
+        // Jouer le son en fonction de l'état actuel
+        if (isRunning) {
+            if (isWorkCycle) {
                 playSound('start');
+            } else if (needsLongBreak) {
+                playSound('break');
             } else {
-                // Resume after pause
-                playSound('start');
+                playSound('break');
             }
         }
-        setIsRunning(prev => !prev);
+    }, [isRunning, isWorkCycle, needsLongBreak]);
+
+    // Calculate progress percentage for the circle
+    const calculateProgress = () => {
+        const totalTime = isWorkCycle
+            ? settings.workDuration * 60
+            : needsLongBreak ? settings.longBreakDuration * 60 : settings.shortBreakDuration * 60;
+        return 1 - (timeLeft / totalTime);
     };
 
-    const handleCycleEnd = () => {
-        if (isWorkCycle) {
-            // End of a work cycle
-            setIndicators(prev => {
-                const updated = [...prev];
-                updated[currentCycle] = IndicatorState.Completed;
-                return updated;
-            });
-
-            // Check if all work cycles are completed
-            if (currentCycle >= settings.cyclesBeforeLongBreak - 1) {
-                // All cycles are done, start the long break
-                setNeedsLongBreak(true);
-                setTimeLeft(settings.longBreakDuration * 60);
-                // Play break sound
-                playSound('break');
-            } else {
-                // Start a standard break
-                setTimeLeft(settings.shortBreakDuration * 60);
-                // Play break sound
-                playSound('break');
-            }
-
-            setIsWorkCycle(false);
-
-            // Automatically start the next cycle
-            setTimeout(() => setIsRunning(true), 0);
-        } else {
-            // End of a break cycle
-            if (needsLongBreak) {
-                // End of long break, reset everything
-                resetAll();
-                // Play complete sound
-                playSound('complete');
-                // Automatically start a new complete cycle
-                setTimeout(() => {
-                    setIndicators(prev => {
-                        const updated = [...prev];
-                        updated[0] = IndicatorState.InProgress;
-                        return updated;
-                    });
-                    setTimeLeft(settings.workDuration * 60);
-                    setIsRunning(true);
-                    // Play start sound for new cycle
-                    playSound('start');
-                }, 0);
-                return;
-            } else {
-                // Move to the next work cycle
-                const nextCycle = currentCycle + 1;
-                setCurrentCycle(nextCycle);
-
-                // Mark the next cycle as in progress
-                setIndicators(prev => {
-                    const updated = [...prev];
-                    if (nextCycle < settings.cyclesBeforeLongBreak) {
-                        updated[nextCycle] = IndicatorState.InProgress;
-                    }
-                    return updated;
-                });
-
-                setTimeLeft(settings.workDuration * 60);
-                setIsWorkCycle(true);
-                // Play start sound
-                playSound('start');
-
-                // Automatically start the next cycle
-                setTimeout(() => setIsRunning(true), 0);
-            }
-        }
+    const toggleTimer = () => {
+        timerService.toggleTimer();
     };
 
     const resetAll = () => {
-        // Stop timer
-        setIsRunning(false);
-        
-        // Reset all states
-        setTimeLeft(settings.workDuration * 60);
-        setIsWorkCycle(true);
-        setCurrentCycle(0);
-        setNeedsLongBreak(false);
-        setIndicators(Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted));
+        timerService.resetAll();
     };
 
     const formatTime = (seconds: number) => {
@@ -278,10 +188,7 @@ export const Timer: FC = () => {
             // Space for play/pause
             if (event.code === 'Space') {
                 event.preventDefault();
-                if (!isRunning) {
-                    playSound('start');
-                }
-                setIsRunning(!isRunning);
+                toggleTimer();
             }
             
             // R to reset timer
@@ -289,13 +196,19 @@ export const Timer: FC = () => {
                 event.preventDefault();
                 resetAll();
             }
+
+            // M to toggle sound
+            if (event.code === 'KeyM') {
+                event.preventDefault();
+                toggleSound();
+            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isRunning, playSound, resetAll]);
+    }, [toggleTimer, resetAll, toggleSound]);
 
     // Notify state changes
     useEffect(() => {
