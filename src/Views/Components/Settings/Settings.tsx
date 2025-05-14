@@ -7,6 +7,7 @@ import { TimerSettings } from "./Sections/TimerSettings";
 import { AppearanceSettings } from "./Sections/AppearanceSettings";
 import { NotificationsSettings } from "./Sections/NotificationsSettings";
 import Cookies from "js-cookie";
+import { timerService } from "../../../services/TimerService";
 
 interface PomodoroSettings {
     workDuration: number;
@@ -31,17 +32,10 @@ export const Settings: FC = () => {
     const [hasChanges, setHasChanges] = useState(false);
     const [currentPage, setCurrentPage] = useState<SettingsPage>('timer');
 
-    // Charger les paramètres sauvegardés au démarrage
+    // Charger les paramètres depuis le service au démarrage
     useEffect(() => {
-        const savedSettings = Cookies.get("pomodoroSettings");
-        if (savedSettings) {
-            try {
-                const parsed = JSON.parse(savedSettings);
-                setSettings(parsed);
-            } catch (error) {
-                console.error("Error loading settings:", error);
-            }
-        }
+        const timerState = timerService.getState();
+        setSettings(timerState.settings);
     }, []);
 
     const pages: Record<SettingsPage, { icon: string, title: string }> = {
@@ -55,6 +49,8 @@ export const Settings: FC = () => {
             const newSettings = { ...prev, [key]: value };
             // Sauvegarder immédiatement les changements
             Cookies.set("pomodoroSettings", JSON.stringify(newSettings), { expires: 365 });
+            // Mettre à jour le service avec les nouveaux paramètres
+            timerService.updateSettings(newSettings);
             return newSettings;
         });
         setHasChanges(true);
