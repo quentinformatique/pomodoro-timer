@@ -258,7 +258,7 @@ export const Timer: FC = () => {
                             strokeLinecap="round"
                         />
                     </svg>
-                    <div className="z-10 flex flex-col gap-3 sm:gap-5 items-center mt-10">
+                    <div className="z-10 flex flex-col gap-3 sm:gap-5 items-center">
                         <DigitalTimer value={formatTime(timeLeft)} />
                         <div className="text-sm text-center">
                             {isWorkCycle 
@@ -271,7 +271,7 @@ export const Timer: FC = () => {
                         <IndicatorGroup indicators={indicators} />
                     </div>
                 </div>
-                <div className="flex justify-center gap-10 mt-10">
+                <div className="flex justify-center gap-10 mt-8">
                     <div className="hover:cursor-pointer flex flex-col justify-center" onClick={resetAll}>
                         <Icon
                             code="refresh"
