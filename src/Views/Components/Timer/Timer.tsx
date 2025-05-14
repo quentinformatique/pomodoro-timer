@@ -208,7 +208,7 @@ export const Timer: FC = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, []);
+    }, [toggleTimer, resetAll, toggleSound]);
 
     // Notify state changes
     useEffect(() => {
