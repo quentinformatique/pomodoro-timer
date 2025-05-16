@@ -13,6 +13,7 @@ on:
         description: 'Automatically generate changelog'
         type: boolean
         default: true
+  push:
 
 jobs:
   release:
