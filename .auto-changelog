@@ -1,0 +1,22 @@
+{
+  "output": "CHANGELOG.md",
+  "template": "keepachangelog",
+  "unreleased": true,
+  "commitLimit": false,
+  "breakingPattern": "BREAKING CHANGE:",
+  "issuePattern": "#(\\d+)",
+  "issueUrl": "https://github.com/VOTRE_UTILISATEUR/pomodoro-timer/issues/{id}",
+  "replaceText": {
+    "feat:": "Features",
+    "fix:": "Bug Fixes",
+    "docs:": "Documentation",
+    "style:": "Styles",
+    "refactor:": "Code Refactoring",
+    "perf:": "Performance Improvements",
+    "test:": "Tests",
+    "build:": "Build System",
+    "ci:": "Continuous Integration",
+    "chore:": "Chores",
+    "revert:": "Reverts"
+  }
+} 

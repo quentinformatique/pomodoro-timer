@@ -1,0 +1,76 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g., v1.0.0)'
+        required: true
+      description:
+        description: 'Release description'
+        required: true
+      auto_changelog:
+        description: 'Générer automatiquement le changelog'
+        type: boolean
+        default: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Nécessaire pour le changelog
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Zip build
+        run: |
+          cd dist
+          zip -r ../pomodoro-${{ github.event.inputs.version }}.zip .
+          cd ..
+
+      - name: Update package.json version
+        run: |
+          VERSION_WITHOUT_V=$(echo "${{ github.event.inputs.version }}" | sed 's/^v//')
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION_WITHOUT_V\"/" package.json
+      
+      - name: Generate changelog
+        if: ${{ github.event.inputs.auto_changelog == 'true' }}
+        run: npm run changelog
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json
+          if [ "${{ github.event.inputs.auto_changelog }}" = "true" ]; then
+            git add CHANGELOG.md
+          fi
+          git commit -m "Bump version to ${{ github.event.inputs.version }}"
+          git tag ${{ github.event.inputs.version }}
+          git push origin main
+          git push origin ${{ github.event.inputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: ${{ github.event.inputs.version }}
+          body: ${{ github.event.inputs.description }}
+          draft: false
+          prerelease: false
+          files: |
+            pomodoro-${{ github.event.inputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
