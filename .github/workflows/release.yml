@@ -10,7 +10,7 @@ on:
         description: 'Release description'
         required: true
       auto_changelog:
-        description: 'Générer automatiquement le changelog'
+        description: 'Automatically generate changelog'
         type: boolean
         default: true
 
@@ -21,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Nécessaire pour le changelog
+          fetch-depth: 0  # Required for changelog generation
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
