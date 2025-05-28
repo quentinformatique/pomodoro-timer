@@ -19,7 +19,7 @@ interface PomodoroSettings {
 export const Timer: FC = () => {
     const { t } = useTranslation();
     
-    // États locaux pour le rendu
+    // Local states for rendering
     const [timeLeft, setTimeLeft] = useState<number>(0);
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isWorkCycle, setIsWorkCycle] = useState<boolean>(true);
@@ -39,12 +39,12 @@ export const Timer: FC = () => {
     const breakSoundRef = useRef<HTMLAudioElement | null>(null);
     const completeSoundRef = useRef<HTMLAudioElement | null>(null);
     
-    // Pour suivre le changement d'état précédent
+    // To track previous state
     const prevRunningRef = useRef(false);
     const prevWorkCycleRef = useRef(true);
     const prevNeedsLongBreakRef = useRef(false);
 
-    // Synchroniser l'état local avec le service
+    // Synchronize local state with service
     useEffect(() => {
         const syncWithService = () => {
             const state = timerService.getState();
@@ -56,13 +56,13 @@ export const Timer: FC = () => {
             setSettings(state.settings);
         };
         
-        // Synchronisation initiale
+        // Initial synchronization
         syncWithService();
         
-        // S'abonner aux mises à jour
+        // Subscribe to updates
         const unsubscribe = timerService.subscribe(syncWithService);
         
-        // Se désabonner lors du nettoyage
+        // Unsubscribe on cleanup
         return unsubscribe;
     }, []);
 
@@ -114,21 +114,21 @@ export const Timer: FC = () => {
         }
     };
 
-    // Jouer les sons au changement d'état du timer
+    // Play sounds on timer state change
     useEffect(() => {
-        // Ne pas jouer de son lors du premier rendu
+        // Don't play sound on first render
         if (prevRunningRef.current === isRunning && 
             prevWorkCycleRef.current === isWorkCycle && 
             prevNeedsLongBreakRef.current === needsLongBreak) {
             return;
         }
         
-        // Mettre à jour les références
+        // Update references
         prevRunningRef.current = isRunning;
         prevWorkCycleRef.current = isWorkCycle;
         prevNeedsLongBreakRef.current = needsLongBreak;
         
-        // Jouer le son en fonction de l'état actuel
+        // Play sound based on current state
         if (isRunning) {
             if (isWorkCycle) {
                 playSound('start');

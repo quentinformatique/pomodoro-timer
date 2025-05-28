@@ -34,7 +34,7 @@ export const Settings: FC = () => {
     const [hasChanges, setHasChanges] = useState(false);
     const [currentPage, setCurrentPage] = useState<SettingsPage>('timer');
 
-    // Charger les paramètres depuis le service au démarrage
+    // Load settings from service on startup
     useEffect(() => {
         const timerState = timerService.getState();
         setSettings(timerState.settings);
@@ -49,9 +49,9 @@ export const Settings: FC = () => {
     const handleSettingChange = (key: keyof PomodoroSettings, value: number | boolean) => {
         setSettings(prev => {
             const newSettings = { ...prev, [key]: value };
-            // Sauvegarder immédiatement les changements
+            // Save changes immediately
             Cookies.set("pomodoroSettings", JSON.stringify(newSettings), { expires: 365 });
-            // Mettre à jour le service avec les nouveaux paramètres
+            // Update service with new settings
             timerService.updateSettings(newSettings);
             return newSettings;
         });
