@@ -14,6 +14,7 @@ interface PomodoroSettings {
     shortBreakDuration: number;
     longBreakDuration: number;
     cyclesBeforeLongBreak: number;
+    manualMode: boolean;
 }
 
 const defaultSettings: PomodoroSettings = {
@@ -21,6 +22,7 @@ const defaultSettings: PomodoroSettings = {
     shortBreakDuration: 5,
     longBreakDuration: 15,
     cyclesBeforeLongBreak: 4,
+    manualMode: false,
 };
 
 type SettingsPage = 'timer' | 'appearance' | 'notifications';
@@ -32,7 +34,7 @@ export const Settings: FC = () => {
     const [hasChanges, setHasChanges] = useState(false);
     const [currentPage, setCurrentPage] = useState<SettingsPage>('timer');
 
-    // Charger les paramètres depuis le service au démarrage
+    // Load settings from service on startup
     useEffect(() => {
         const timerState = timerService.getState();
         setSettings(timerState.settings);
@@ -44,12 +46,12 @@ export const Settings: FC = () => {
         notifications: { icon: 'notifications', title: t('settings.notifications.title') }
     };
 
-    const handleSettingChange = (key: keyof PomodoroSettings, value: number) => {
+    const handleSettingChange = (key: keyof PomodoroSettings, value: number | boolean) => {
         setSettings(prev => {
             const newSettings = { ...prev, [key]: value };
-            // Sauvegarder immédiatement les changements
+            // Save changes immediately
             Cookies.set("pomodoroSettings", JSON.stringify(newSettings), { expires: 365 });
-            // Mettre à jour le service avec les nouveaux paramètres
+            // Update service with new settings
             timerService.updateSettings(newSettings);
             return newSettings;
         });
@@ -126,7 +128,7 @@ export const Settings: FC = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col justify-between p-6 w-sm sm:w-lg">
+                <div className="flex-1 flex flex-col justify-between p-6 pb-0 w-sm sm:w-lg">
                     <div className="flex-1">
                         <div className="container mx-auto px-4 sm:px-6">
                             <div className="max-w-screen-sm mx-auto">

@@ -6,6 +6,7 @@ interface PomodoroSettings {
     shortBreakDuration: number;
     longBreakDuration: number;
     cyclesBeforeLongBreak: number;
+    manualMode: boolean;
 }
 
 const defaultSettings: PomodoroSettings = {
@@ -13,6 +14,7 @@ const defaultSettings: PomodoroSettings = {
     shortBreakDuration: 5,
     longBreakDuration: 15,
     cyclesBeforeLongBreak: 4,
+    manualMode: false,
 };
 
 interface TimerState {
@@ -33,7 +35,7 @@ class TimerService {
     private intervalId: number | null = null;
 
     private constructor() {
-        // Initialiser l'état avec des valeurs par défaut
+        // Initialize state with default values
         this.state = {
             timeLeft: defaultSettings.workDuration * 60,
             isRunning: false,
@@ -45,7 +47,7 @@ class TimerService {
             lastUpdatedAt: Date.now()
         };
 
-        // Charger les paramètres sauvegardés
+        // Load saved settings
         this.loadSettings();
     }
 
@@ -62,7 +64,7 @@ class TimerService {
             try {
                 const parsedSettings = JSON.parse(savedSettings);
                 this.state.settings = parsedSettings;
-                // Ne réinitialise pas les indicateurs si on est en cours de session
+                // Don't reset indicators if we're in the middle of a session
                 if (this.state.indicators.every(state => state === IndicatorState.NotStarted)) {
                     this.state.indicators = Array(parsedSettings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted) as IndicatorState[];
                 }
@@ -71,31 +73,31 @@ class TimerService {
             }
         }
 
-        // Charger l'état du timer si disponible
+        // Load timer state if available
         const savedTimerState = Cookies.get("timerState");
         if (savedTimerState) {
             try {
                 const parsedState = JSON.parse(savedTimerState) as Partial<TimerState>;
                 const lastUpdatedAt = parsedState.lastUpdatedAt || Date.now();
                 
-                // Si le timer était en cours, calculer le temps écoulé depuis
+                // If timer was running, calculate elapsed time
                 if (parsedState.isRunning && parsedState.timeLeft) {
                     const elapsedSeconds = Math.floor((Date.now() - lastUpdatedAt) / 1000);
                     const newTimeLeft = Math.max(0, parsedState.timeLeft - elapsedSeconds);
                     
-                    // Si le temps est écoulé, on gère le cycle suivant au prochain démarrage
+                    // If time is up, handle next cycle on next start
                     if (newTimeLeft <= 0) {
                         parsedState.isRunning = false;
-                        parsedState.timeLeft = 1; // On laisse 1 seconde pour que handleCycleEnd soit déclenché
+                        parsedState.timeLeft = 1; // Leave 1 second for handleCycleEnd to be triggered
                     } else {
                         parsedState.timeLeft = newTimeLeft;
                     }
                 }
                 
-                // Mettre à jour l'état avec les valeurs sauvegardées
+                // Update state with saved values
                 Object.assign(this.state, parsedState, { lastUpdatedAt: Date.now() });
                 
-                // Redémarrer l'interval si le timer est en cours
+                // Restart interval if timer is running
                 if (this.state.isRunning) {
                     this.startInterval();
                 }
@@ -111,13 +113,13 @@ class TimerService {
                 ...this.state,
                 lastUpdatedAt: Date.now()
             };
-            Cookies.set("timerState", JSON.stringify(stateToSave), { expires: 1 }); // Expire en 1 jour
+            Cookies.set("timerState", JSON.stringify(stateToSave), { expires: 1 }); // Expires in 1 day
         } catch (error) {
             console.error("Error saving timer state:", error);
         }
     }
 
-    // Démarrer l'intervalle pour décompter le temps
+    // Start interval to count down time
     private startInterval() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
@@ -128,7 +130,7 @@ class TimerService {
         }, 1000);
     }
 
-    // Arrêter l'intervalle
+    // Stop interval
     private stopInterval() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
@@ -136,7 +138,7 @@ class TimerService {
         }
     }
 
-    // Mettre à jour le temps restant
+    // Update remaining time
     private updateTimeLeft() {
         if (this.state.timeLeft <= 1) {
             this.stopInterval();
@@ -151,46 +153,56 @@ class TimerService {
         this.notifyListeners();
     }
 
-    // Gérer la fin d'un cycle
+    // Handle cycle end
     private handleCycleEnd() {
         if (this.state.isWorkCycle) {
-            // Fin d'un cycle de travail
+            // End of work cycle
             const updatedIndicators: IndicatorState[] = [...this.state.indicators];
             updatedIndicators[this.state.currentCycle] = IndicatorState.Completed;
             this.state.indicators = updatedIndicators;
 
-            // Vérifier si tous les cycles sont terminés
+            // Check if all cycles are completed
             if (this.state.currentCycle >= this.state.settings.cyclesBeforeLongBreak - 1) {
-                // Tous les cycles sont terminés, commencer la pause longue
+                // All cycles completed, start long break
                 this.state.needsLongBreak = true;
                 this.state.timeLeft = this.state.settings.longBreakDuration * 60;
             } else {
-                // Commencer une pause standard
+                // Start standard break
                 this.state.timeLeft = this.state.settings.shortBreakDuration * 60;
             }
 
             this.state.isWorkCycle = false;
             
-            // Redémarrer automatiquement après une courte pause
-            this.toggleTimer();
-        } else {
-            // Fin d'un cycle de pause
-            if (this.state.needsLongBreak) {
-                // Fin de pause longue, tout réinitialiser
-                this.resetAll();
-                
-                // Redémarrer automatiquement un nouveau cycle complet
-                const updatedIndicators: IndicatorState[] = [...this.state.indicators];
-                updatedIndicators[0] = IndicatorState.InProgress;
-                this.state.indicators = updatedIndicators;
-                this.state.timeLeft = this.state.settings.workDuration * 60;
+            // Auto-restart only if not in manual mode
+            if (!this.state.settings.manualMode) {
                 this.toggleTimer();
             } else {
-                // Passer au cycle de travail suivant
+                // Play notification sound in manual mode
+                this.playNotificationSound();
+            }
+        } else {
+            // End of break cycle
+            if (this.state.needsLongBreak) {
+                // End of long break, reset everything
+                this.resetAll();
+                
+                // Auto-restart new complete cycle only if not in manual mode
+                if (!this.state.settings.manualMode) {
+                    const updatedIndicators: IndicatorState[] = [...this.state.indicators];
+                    updatedIndicators[0] = IndicatorState.InProgress;
+                    this.state.indicators = updatedIndicators;
+                    this.state.timeLeft = this.state.settings.workDuration * 60;
+                    this.toggleTimer();
+                } else {
+                    // Play notification sound in manual mode
+                    this.playNotificationSound();
+                }
+            } else {
+                // Move to next work cycle
                 const nextCycle = this.state.currentCycle + 1;
                 this.state.currentCycle = nextCycle;
 
-                // Marquer le cycle suivant comme en cours
+                // Mark next cycle as in progress
                 const updatedIndicators: IndicatorState[] = [...this.state.indicators];
                 if (nextCycle < this.state.settings.cyclesBeforeLongBreak) {
                     updatedIndicators[nextCycle] = IndicatorState.InProgress;
@@ -200,8 +212,13 @@ class TimerService {
                 this.state.timeLeft = this.state.settings.workDuration * 60;
                 this.state.isWorkCycle = true;
 
-                // Redémarrer automatiquement après une courte pause
-                this.toggleTimer();
+                // Auto-restart only if not in manual mode
+                if (!this.state.settings.manualMode) {
+                    this.toggleTimer();
+                } else {
+                    // Play notification sound in manual mode
+                    this.playNotificationSound();
+                }
             }
         }
         
@@ -209,16 +226,26 @@ class TimerService {
         this.notifyListeners();
     }
 
-    // API publique
+    // Play notification sound
+    private playNotificationSound() {
+        try {
+            const audio = new Audio("/sounds/complete.mp3");
+            audio.play();
+        } catch (error) {
+            console.error("Error playing notification sound:", error);
+        }
+    }
+
+    // Public API
     public getState(): TimerState {
         return { ...this.state };
     }
 
     public toggleTimer() {
         if (!this.state.isRunning) {
-            // Démarrer le timer
+            // Start timer
             if (this.state.indicators.every(state => state === IndicatorState.NotStarted)) {
-                // Premier démarrage
+                // First start
                 const updatedIndicators: IndicatorState[] = [...this.state.indicators];
                 updatedIndicators[0] = IndicatorState.InProgress;
                 this.state.indicators = updatedIndicators;
@@ -229,7 +256,7 @@ class TimerService {
             this.state.isRunning = true;
             this.startInterval();
         } else {
-            // Arrêter le timer
+            // Stop timer
             this.state.isRunning = false;
             this.stopInterval();
         }
@@ -239,10 +266,10 @@ class TimerService {
     }
 
     public resetAll() {
-        // Arrêter le timer
+        // Stop timer
         this.stopInterval();
         
-        // Réinitialiser tous les états
+        // Reset all states
         this.state.isRunning = false;
         this.state.timeLeft = this.state.settings.workDuration * 60;
         this.state.isWorkCycle = true;
@@ -257,7 +284,7 @@ class TimerService {
     public updateSettings(settings: PomodoroSettings) {
         this.state.settings = { ...settings };
         
-        // Mettre à jour le temps restant en fonction du type de cycle actuel
+        // Update remaining time based on current cycle type
         if (this.state.isWorkCycle) {
             this.state.timeLeft = settings.workDuration * 60;
         } else if (this.state.needsLongBreak) {
@@ -266,12 +293,12 @@ class TimerService {
             this.state.timeLeft = settings.shortBreakDuration * 60;
         }
         
-        // Mettre à jour les indicateurs si nécessaire
+        // Update indicators if necessary
         if (settings.cyclesBeforeLongBreak !== this.state.indicators.length) {
-            // Préserver les états existants lors du redimensionnement
+            // Preserve existing states during resize
             const newIndicators: IndicatorState[] = Array(settings.cyclesBeforeLongBreak).fill(IndicatorState.NotStarted) as IndicatorState[];
             
-            // Copier les états existants
+            // Copy existing states
             for (let i = 0; i < Math.min(this.state.indicators.length, newIndicators.length); i++) {
                 newIndicators[i] = this.state.indicators[i];
             }
@@ -283,7 +310,7 @@ class TimerService {
         this.notifyListeners();
     }
 
-    // Système d'abonnement pour les composants
+    // Subscription system for components
     public subscribe(listener: () => void): () => void {
         this.listeners.push(listener);
         return () => {

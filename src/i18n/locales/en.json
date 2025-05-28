@@ -30,6 +30,12 @@
             "enabled": "Notifications enabled",
             "disabled": "Notifications disabled",
             "permission": "Allow notifications to get alerts when cycles end"
+        },
+        "mode": {
+            "manualMode": "Manual Mode",
+            "autoMode": "Auto Mode",
+            "manualModeDescription": "Press play to continue",
+            "autoModeDescription": "Automatic transition"
         }
     },
     "timer": {
