@@ -30,6 +30,11 @@
             "enabled": "Notifications activées",
             "disabled": "Notifications désactivées",
             "permission": "Autorisez les notifications pour être alerté à la fin des cycles"
+        },
+        "mode": {
+            "manualMode": "Mode Manuel",
+            "manualModeDescription": "appuyer sur le bouton pour continuer",
+            "autoModeDescription": "enchaînement automatique sans intervention"
         }
     },
     "timer": {

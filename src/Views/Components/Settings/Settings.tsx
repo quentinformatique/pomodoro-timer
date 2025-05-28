@@ -126,7 +126,7 @@ export const Settings: FC = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col justify-between p-6 w-sm sm:w-lg">
+                <div className="flex-1 flex flex-col justify-between p-6 pb-0 w-sm sm:w-lg">
                     <div className="flex-1">
                         <div className="container mx-auto px-4 sm:px-6">
                             <div className="max-w-screen-sm mx-auto">

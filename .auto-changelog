@@ -5,7 +5,7 @@
   "commitLimit": false,
   "breakingPattern": "BREAKING CHANGE:",
   "issuePattern": "#(\\d+)",
-  "issueUrl": "https://github.com/VOTRE_UTILISATEUR/pomodoro-timer/issues/{id}",
+  "issueUrl": "https://github.com/quentinformatique/pomodoro-timer/issues/{id}",
   "replaceText": {
     "feat:": "Features",
     "fix:": "Bug Fixes",

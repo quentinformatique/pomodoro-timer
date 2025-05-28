@@ -6,6 +6,7 @@ interface PomodoroSettings {
     shortBreakDuration: number;
     longBreakDuration: number;
     cyclesBeforeLongBreak: number;
+    manualMode: boolean;
 }
 
 const defaultSettings: PomodoroSettings = {
@@ -13,6 +14,7 @@ const defaultSettings: PomodoroSettings = {
     shortBreakDuration: 5,
     longBreakDuration: 15,
     cyclesBeforeLongBreak: 4,
+    manualMode: false,
 };
 
 interface TimerState {
@@ -171,20 +173,30 @@ class TimerService {
 
             this.state.isWorkCycle = false;
             
-            // Redémarrer automatiquement après une courte pause
-            this.toggleTimer();
+            // Redémarrer automatiquement seulement si on n'est pas en mode manuel
+            if (!this.state.settings.manualMode) {
+                this.toggleTimer();
+            } else {
+                // Jouer un son de notification en mode manuel
+                this.playNotificationSound();
+            }
         } else {
             // Fin d'un cycle de pause
             if (this.state.needsLongBreak) {
                 // Fin de pause longue, tout réinitialiser
                 this.resetAll();
                 
-                // Redémarrer automatiquement un nouveau cycle complet
-                const updatedIndicators: IndicatorState[] = [...this.state.indicators];
-                updatedIndicators[0] = IndicatorState.InProgress;
-                this.state.indicators = updatedIndicators;
-                this.state.timeLeft = this.state.settings.workDuration * 60;
-                this.toggleTimer();
+                // Redémarrer automatiquement un nouveau cycle complet seulement si on n'est pas en mode manuel
+                if (!this.state.settings.manualMode) {
+                    const updatedIndicators: IndicatorState[] = [...this.state.indicators];
+                    updatedIndicators[0] = IndicatorState.InProgress;
+                    this.state.indicators = updatedIndicators;
+                    this.state.timeLeft = this.state.settings.workDuration * 60;
+                    this.toggleTimer();
+                } else {
+                    // Jouer un son de notification en mode manuel
+                    this.playNotificationSound();
+                }
             } else {
                 // Passer au cycle de travail suivant
                 const nextCycle = this.state.currentCycle + 1;
@@ -200,13 +212,28 @@ class TimerService {
                 this.state.timeLeft = this.state.settings.workDuration * 60;
                 this.state.isWorkCycle = true;
 
-                // Redémarrer automatiquement après une courte pause
-                this.toggleTimer();
+                // Redémarrer automatiquement seulement si on n'est pas en mode manuel
+                if (!this.state.settings.manualMode) {
+                    this.toggleTimer();
+                } else {
+                    // Jouer un son de notification en mode manuel
+                    this.playNotificationSound();
+                }
             }
         }
         
         this.saveState();
         this.notifyListeners();
+    }
+
+    // Jouer un son de notification
+    private playNotificationSound() {
+        try {
+            const audio = new Audio("/sounds/complete.mp3");
+            audio.play();
+        } catch (error) {
+            console.error("Error playing notification sound:", error);
+        }
     }
 
     // API publique
