@@ -13,6 +13,7 @@ interface PomodoroSettings {
     shortBreakDuration: number;
     longBreakDuration: number;
     cyclesBeforeLongBreak: number;
+    manualMode: boolean;
 }
 
 export const Timer: FC = () => {
@@ -29,6 +30,7 @@ export const Timer: FC = () => {
         shortBreakDuration: 5,
         longBreakDuration: 15,
         cyclesBeforeLongBreak: 4,
+        manualMode: false,
     });
     const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 

@@ -14,6 +14,7 @@ interface PomodoroSettings {
     shortBreakDuration: number;
     longBreakDuration: number;
     cyclesBeforeLongBreak: number;
+    manualMode: boolean;
 }
 
 const defaultSettings: PomodoroSettings = {
@@ -21,6 +22,7 @@ const defaultSettings: PomodoroSettings = {
     shortBreakDuration: 5,
     longBreakDuration: 15,
     cyclesBeforeLongBreak: 4,
+    manualMode: false,
 };
 
 type SettingsPage = 'timer' | 'appearance' | 'notifications';
@@ -44,7 +46,7 @@ export const Settings: FC = () => {
         notifications: { icon: 'notifications', title: t('settings.notifications.title') }
     };
 
-    const handleSettingChange = (key: keyof PomodoroSettings, value: number) => {
+    const handleSettingChange = (key: keyof PomodoroSettings, value: number | boolean) => {
         setSettings(prev => {
             const newSettings = { ...prev, [key]: value };
             // Sauvegarder immédiatement les changements
