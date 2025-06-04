@@ -310,6 +310,13 @@ export const Timer: FC = () => {
                             className="text-5xl! sm:text-7xl!"
                         />
                     </div>
+                    <div className="hover:cursor-pointer flex flex-col justify-center" onClick={() => timerService.skipStep()}>
+                        <Icon
+                            code="skip_next"
+                            fill={false}
+                            className="text-3xl! sm:text-4xl!"
+                        />
+                    </div>
                     <div className="hover:cursor-pointer flex flex-col justify-center" onClick={toggleSound}>
                         <Icon
                             code={soundEnabled ? "volume_up" : "volume_off"}
