@@ -229,6 +229,28 @@ export const Timer: FC = () => {
         notifyState();
     }, [isWorkCycle, needsLongBreak, isRunning]);
 
+    // Update document title with timer progress
+    useEffect(() => {
+        const totalTime = isWorkCycle
+            ? settings.workDuration * 60
+            : needsLongBreak ? settings.longBreakDuration * 60 : settings.shortBreakDuration * 60;
+        
+        const progress = Math.round((1 - timeLeft / totalTime) * 100);
+        const timeString = formatTime(timeLeft);
+        const cycleType = isWorkCycle 
+            ? t('timer.workTime')
+            : needsLongBreak 
+                ? t('timer.longBreak')
+                : t('timer.shortBreak');
+        
+        document.title = `${timeString} - ${cycleType} (${progress}%)`;
+        
+        // Reset title when timer is not running
+        if (!isRunning) {
+            document.title = 'Pomodoro Timer';
+        }
+    }, [timeLeft, isRunning, isWorkCycle, needsLongBreak, settings, t]);
+
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 flex flex-col justify-center">
