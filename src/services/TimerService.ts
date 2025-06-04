@@ -281,6 +281,18 @@ class TimerService {
         this.notifyListeners();
     }
 
+    public skipStep() {
+        // Stop current timer
+        this.stopInterval();
+        this.state.isRunning = false;
+        
+        // Handle the current cycle end
+        this.handleCycleEnd();
+        
+        this.saveState();
+        this.notifyListeners();
+    }
+
     public updateSettings(settings: PomodoroSettings) {
         this.state.settings = { ...settings };
         
